@@ -1,0 +1,117 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LuxVoyage - Luxury Hotels in Odisha</title>
+  <style>
+    body { font-family: 'Segoe UI', sans-serif; margin: 0; padding: 0; background-color: #f8f9fa; }
+    header { background-color: #2c3e50; color: white; padding: 2rem; text-align: center; }
+    section { padding: 2rem; }
+    .hotel-column { display: flex; flex-direction: column; gap: 1.5rem; }
+    .hotel-card { display: flex; align-items: center; background: white; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); overflow: hidden; }
+    .hotel-card img { width: 120px; height: 120px; object-fit: cover; }
+    .hotel-card-content { flex-grow: 1; padding: 1rem; }
+    .hotel-card h3 { margin: 0 0 0.5rem 0; }
+    .buttons { display: flex; gap: 0.5rem; margin-top: 0.5rem; }
+    .btn { background: #2c3e50; color: white; padding: 0.4rem 0.8rem; border: none; border-radius: 5px; cursor: pointer; text-decoration: none; font-size: 0.9rem; }
+    .popup-form, .popup-overlay { display: none; position: fixed; z-index: 1000; }
+    .popup-overlay { top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); }
+    .popup-form { background: white; padding: 2rem; border-radius: 10px; box-shadow: 0 2px 20px rgba(0,0,0,0.5); top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90%; max-width: 400px; }
+    .popup-form input, .popup-form button { width: 100%; margin-bottom: 1rem; padding: 0.6rem; }
+    .share-links { text-align: center; margin-top: 2rem; display: none; }
+    .share-links a { margin: 0 0.5rem; color: #2c3e50; text-decoration: none; font-size: 1.2rem; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>LuxVoyage - Luxury Hotels in Odisha</h1>
+    <p>Explore premium stays backed by marketing analytics</p>
+  </header>
+
+  <section>
+    <div class="hotel-column" id="hotelCards"></div>
+
+    <!-- Social Sharing Links -->
+    <div class="share-links" id="shareLinks">
+      <p>Share your stay:</p>
+      <a href="https://www.instagram.com/" target="_blank">Instagram</a>
+      <a href="https://www.facebook.com/sharer/sharer.php?u=https://luxvoyage.com" target="_blank">Facebook</a>
+      <a href="https://twitter.com/intent/tweet?text=Just%20booked%20a%20luxury%20stay%20via%20LuxVoyage!" target="_blank">Twitter</a>
+    </div>
+  </section>
+
+  <!-- Booking Popup -->
+  <div class="popup-overlay" id="popupOverlay" onclick="closeForm()"></div>
+  <div class="popup-form" id="popupForm">
+    <h2 id="formTitle">Book Hotel</h2>
+    <input type="text" placeholder="Your Name">
+    <input type="email" placeholder="Your Email">
+    <input type="date" placeholder="Check-in Date">
+    <input type="number" placeholder="Number of Guests">
+    <input type="text" placeholder="Special Requests (optional)">
+    <button onclick="submitBooking()">Submit Booking</button>
+  </div>
+
+  <script>
+    const hotels = [
+      { name: "Mayfair Lagoon - Bhubaneswar", desc: "A colonial-style luxury stay with serene lagoons and elegance.", img: "https://www.mayfairhotels.com/uploads/0000/1/2023/06/19/desktop-view.jpg", url: "https://www.mayfairhotels.com/mayfair-lagoon-bhubaneswar/" },
+      { name: "Swosti Premium Hotel - Bhubaneswar", desc: "One of the largest convention hotels with royal ambience.", img: "https://www.swostihotels.com/uploads/0000/1/2021/07/12/swosti-premium.jpg", url: "https://www.swostihotels.com/swosti-premium" },
+      { name: "The Crown Hotel - Bhubaneswar", desc: "Elegant interiors with premium service and fine dining.", img: "https://www.hotelcrown.com/images/slider/slider-1.jpg", url: "https://www.hotelcrown.com/" },
+      { name: "Pal Heights - Bhubaneswar", desc: "Stylish stay in the heart of the city, with modern amenities.", img: "https://www.palheights.com/images/slider1.jpg", url: "https://www.palheights.com/" },
+      { name: "Ginger Hotel - Bhubaneswar", desc: "Smart stays for modern travelers at budget-luxury comfort.", img: "https://www.gingerhotels.com/resourcefiles/hotelgalleryimage/ginger-bhubaneswar-hotel-exterior.jpg", url: "https://www.gingerhotels.com/ginger-bhubaneswar" },
+      { name: "IRA by Orchid Hotel - Bhubaneswar", desc: "Eco-luxury hotel with cozy interiors and personalized service.", img: "https://www.orchidhotel.com/images/gallery/ira-bhubaneswar.jpg", url: "https://www.orchidhotel.com/ira-bhubaneswar" },
+      { name: "Lucky India Royal Heritage - Bhubaneswar", desc: "Cultural opulence with a taste of traditional Odisha.", img: "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/15/0c/32/42/lucky-india-royal-heritage.jpg", url: "#" },
+      { name: "Lemon Tree Premier - Bhubaneswar", desc: "Cheerful atmosphere, spacious rooms and vibrant vibes.", img: "https://media.lemontreehotels.com/Photos/1066/Exterior%20Shot.jpg", url: "https://www.lemontreehotels.com/lemon-tree-premier/bhubaneswar" },
+      { name: "Sandy's Tower Hotel - Bhubaneswar", desc: "Luxury and comfort with cityscape views.", img: "https://www.sandystower.com/images/banner1.jpg", url: "https://www.sandystower.com/" },
+      { name: "Hotel HHI - Bhubaneswar", desc: "Boutique style luxury with vibrant interiors.", img: "https://www.hhihotels.com/images/hotel/hhi-bhubaneswar/banner.jpg", url: "https://www.hhihotels.com/" },
+      { name: "Crystal Urban Park - Bhubaneswar", desc: "Modern design with peaceful ambiance in central Bhubaneswar.", img: "https://cf.bstatic.com/xdata/images/hotel/max1024x768/422963232.jpg", url: "#" },
+      { name: "Fortune Park Sishmo - Bhubaneswar", desc: "Elegant business hotel with Fortune group legacy.", img: "https://www.fortunehotels.in/hotel-images/fortune-park-sishmo-bhubaneswar/original/exterior.jpg", url: "https://www.fortunehotels.in/" },
+      { name: "Lyfe Hotel - Bhubaneswar", desc: "Hip, youthful hotel designed for digital nomads.", img: "https://cf.bstatic.com/xdata/images/hotel/max1024x768/497255579.jpg", url: "#" },
+      { name: "Pipul Padmaja Premium - Bhubaneswar", desc: "Affordable luxury blended with hospitality.", img: "https://cf.bstatic.com/xdata/images/hotel/max1024x768/429290149.jpg", url: "#" },
+      { name: "Hotel La Franklin - Bhubaneswar", desc: "Comfortable accommodation with warm service.", img: "http://www.lafranklin.com/images/slider/slide1.jpg", url: "http://www.lafranklin.com/" },
+      { name: "Welcome Hotel by ITC - Bhubaneswar", desc: "Redefining opulence with signature ITC hospitality.", img: "https://www.itchotels.com/content/dam/itchotels/in/umbrella/welcomhotel/hotels/welcomhotel-bhubaneswar/images/overview-banner/welcomhotel-bhubaneswar-hero-image.jpg", url: "https://www.itchotels.com/in/en/welcomhotel-bhubaneswar" }
+    ];
+
+    const container = document.getElementById('hotelCards');
+    hotels.forEach(hotel => {
+      const card = document.createElement('div');
+      card.className = 'hotel-card';
+      card.innerHTML = `
+        <img src="${hotel.img}" alt="Hotel">
+        <div class="hotel-card-content">
+          <h3>${hotel.name}</h3>
+          <p>${hotel.desc}</p>
+          <div class="buttons">
+            <a class="btn" href="${hotel.url}" target="_blank">View Website</a>
+            <button class="btn" onclick="openForm('${hotel.name}')">Book Now</button>
+          </div>
+        </div>
+      `;
+      container.appendChild(card);
+    });
+
+    function openForm(hotelName) {
+      document.getElementById('formTitle').innerText = `Book ${hotelName}`;
+      document.getElementById('popupOverlay').style.display = 'block';
+      document.getElementById('popupForm').style.display = 'block';
+    }
+
+    function closeForm() {
+      document.getElementById('popupOverlay').style.display = 'none';
+      document.getElementById('popupForm').style.display = 'none';
+    }
+
+    function submitBooking() {
+      closeForm();
+      setTimeout(() => {
+        alert("Thank you! Your booking has been received. You'll get a confirmation email shortly.");
+        const shareLinks = document.getElementById("shareLinks");
+        shareLinks.style.display = "block";
+        shareLinks.scrollIntoView({ behavior: 'smooth' });
+      }, 300);
+    }
+  </script>
+</body>
+</html>
